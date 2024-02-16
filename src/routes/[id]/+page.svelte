@@ -13,20 +13,33 @@
 
 	let currentId = $state<string | null>(null);
 
-	let outgoingLinksContent: Array<{ id: string; html: string }> = [];
+	const idToHtmlMap = new Map<string, string>();
 
-	onMount(async () => {
-		const res = await data.outgoingLinksContent;
-		outgoingLinksContent = res;
+	$effect(() => {
+		(async () => {
+            console.log('running data effect')
+			const outgoing = await data.outgoingLinksContent;
+			const incoming = await data.incomingLinksContent;
+			console.log({ outgoing, incoming });
+			for (const link of outgoing) {
+				if (!link) continue;
+				idToHtmlMap.set(link.id, link.html);
+			}
+
+			for (const link of incoming) {
+				if (!link) continue;
+				idToHtmlMap.set(link.source, link.html);
+			}
+
+			// console.log('idToHtmlMap', idToHtmlMap);
+		})();
 	});
 </script>
 
-{#if currentId}
+{#if currentId && idToHtmlMap.has(currentId)}
 	<div style="position:absolute; background: white;" class="hover-note" use:floatingContent>
-		{#await data.outgoingLinksContent then links}
-			{@const link = links.filter(Boolean).find((link) => link.id === currentId)}
-			{@html link?.html}
-		{/await}
+		<!-- {@const link = links.filter(Boolean).find((link) => link.id === currentId)} -->
+		{@html idToHtmlMap.get(currentId)}
 	</div>
 {/if}
 
@@ -64,7 +77,18 @@
 			{#each incomingLinks as backlink}
 				<!-- {JSON.stringify(backlink)} -->
 				<li>
-					<a href="/{backlink.source}">
+					<a
+						href="/{backlink.source}"
+						on:mouseover={(e) => {
+							if (e.target instanceof HTMLAnchorElement) {
+								currentId = backlink.source;
+								floatingRef(e.target);
+							}
+						}}
+						on:mouseout={() => {
+							currentId = null;
+						}}
+					>
 						<span>{backlink.title}</span>
 						<div class="backlink-context">
 							{@html backlink.html}
@@ -136,7 +160,7 @@
 		max-width: 100%;
 	}
 
-    .backlink-context {
-        pointer-events: none;
-    }
+	.backlink-context {
+		pointer-events: none;
+	}
 </style>

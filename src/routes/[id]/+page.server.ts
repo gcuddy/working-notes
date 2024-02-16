@@ -26,7 +26,8 @@ export const load = async ({ locals, params, platform }) => {
 		.select({
 			source: backlinks.source,
 			title: notes.title,
-			context: backlinks.context
+			context: backlinks.context,
+			r2_key: notes.r2_key
 		})
 		.from(backlinks)
 		.innerJoin(notes, sql`backlinks.source = notes.id`)
@@ -99,6 +100,26 @@ export const load = async ({ locals, params, platform }) => {
 					})
 					.filter(Boolean)
 			);
+		})(),
+		incomingLinksContent: (async () => {
+			// get incoming link data
+			const outgoingLinksContent = await Promise.all(
+				incomingLinks
+					.map(async (l) => {
+						if (!l.r2_key) return;
+						const note = await platform?.env.BUCKET.get(l.r2_key);
+						const content = await note?.text();
+						// TODO: new processor, new links
+						const vFile = await processor.process(content);
+						return {
+							...l,
+							content,
+							html: String(vFile)
+						};
+					})
+					.filter(Boolean)
+			);
+			return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 		})(),
 		outgoingLinksContent: getOutgoingLinksContent()
 	};
