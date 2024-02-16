@@ -79,7 +79,27 @@ export const load = async ({ locals, params, platform }) => {
 			html: String(vfile)
 		},
 		outgoingLinks,
-		incomingLinks,
+		incomingLinks: (async () => {
+			// get incoming link data
+			// const incomingLinks =
+			// TODO: get html from incoming links
+			return await Promise.all(
+				incomingLinks
+					.map(async (l) => {
+						if (!l.context) return;
+						const vfile = await processor.process(l.context);
+						// TODO: this should actually just strip the wikilink formatting
+						const html = String(vfile);
+						return {
+							source: l.source,
+							title: l.title,
+							context: l.context,
+							html
+						};
+					})
+					.filter(Boolean)
+			);
+		})(),
 		outgoingLinksContent: getOutgoingLinksContent()
 	};
 };

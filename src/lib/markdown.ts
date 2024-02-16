@@ -9,6 +9,7 @@ import rehypeStringify from 'rehype-stringify';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import remarkSmartypants from 'remark-smartypants';
+import { remarkMark } from 'remark-mark-highlight';
 
 export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
 	unified()
@@ -16,6 +17,7 @@ export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
 		.use(remarkFrontmatter as any)
 		.use(remarkGfm)
 		.use(remarkSmartypants)
+		.use(remarkMark as any)
 		// TODO: write plugin to get ids
 		// .use(wikiLinkPlugin)
 		.use(remarkWikiLink, {
