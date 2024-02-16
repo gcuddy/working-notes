@@ -5,7 +5,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// inject d1
 
 	if (event.platform?.env.DB) {
-		const db = drizzle(event.platform.env.DB);
+		const db = drizzle(event.platform.env.DB, {
+			logger: true
+		});
 		event.locals.db = db;
 	}
 

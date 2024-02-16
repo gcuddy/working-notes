@@ -5,6 +5,7 @@ export const PUT = async ({ locals, request, params, platform }) => {
 	try {
 		const data = await request.json();
 		const parsed = parse(insertBacklinkSchema, data);
+		console.log({ parsed });
 		await platform?.env.DB.prepare(
 			'INSERT OR IGNORE INTO backlinks (target, source, context, target_text) VALUES (?1, ?2, ?3, ?4)'
 		)

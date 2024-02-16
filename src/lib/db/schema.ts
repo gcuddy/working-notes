@@ -14,7 +14,7 @@ export const backlinks = sqliteTable(
 	{
 		source: text('source'),
 		target: text('target'),
-		target_text: text('text'),
+		target_text: text('target_text'),
 		context: text('context')
 		// created_at: integer('created_at'),
 		// updated_at: integer('updated_at')
