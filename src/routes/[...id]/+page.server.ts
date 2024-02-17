@@ -8,16 +8,16 @@ export const load = async ({ locals, params, platform, url }) => {
 
 	const [id, ...extra] = params.id.split('/');
 
-	console.time('load notes');
+	const t0 = Date.now();
 	const n = (
 		await locals.db
 			.select()
 			.from(notes)
 			.where(eq(notes.id, id as string))
 	).at(0);
-	console.timeEnd('load notes');
+	console.log('load notes took', Date.now() - t0);
 
-	console.time('load backlinks');
+	const t1 = Date.now();
 
 	const outgoingLinks = await locals.db
 		.select({
@@ -30,10 +30,9 @@ export const load = async ({ locals, params, platform, url }) => {
 		.leftJoin(notes, eq(backlinks.target, notes.id))
 		.where(eq(backlinks.source, id as string));
 
-	console.timeEnd('load backlinks');
+	console.log('load outgoing links took', Date.now() - t1);
 
-	console.time('load incoming links');
-
+	const t2 = Date.now();
 	const incomingLinks = await locals.db
 		.select({
 			source: backlinks.source,
@@ -45,7 +44,7 @@ export const load = async ({ locals, params, platform, url }) => {
 		.innerJoin(notes, sql`backlinks.source = notes.id`)
 		.where(sql`backlinks.target = ${id}`);
 
-	console.time('load incoming links');
+	console.log('load incoming links took', Date.now() - t2);
 
 	// now lookup in r2
 
@@ -53,7 +52,7 @@ export const load = async ({ locals, params, platform, url }) => {
 		throw error(404, 'Note not found');
 	}
 
-	console.time('load note');
+	const t3 = Date.now();
 	const note = await platform.env.BUCKET.get(n.r2_key);
 	const body = await note?.text();
 
@@ -66,10 +65,10 @@ export const load = async ({ locals, params, platform, url }) => {
 
 	const vfile = await processor.process(body);
 
-	console.timeEnd('load note');
+	console.log('load note content took', Date.now() - t3);
 
 	async function getOutgoingLinksContent() {
-		console.time('load outgoing links');
+		const t0 = Date.now();
 		const outgoingLinksContent = await Promise.all(
 			outgoingLinks
 				.map(async (l) => {
@@ -87,14 +86,14 @@ export const load = async ({ locals, params, platform, url }) => {
 				})
 				.filter(Boolean)
 		);
-		console.timeEnd('load outgoing links');
+		console.log('load outgoing links content took', Date.now() - t0);
 		return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 	}
 
 	const stack = url.searchParams.get('stack')?.split(',') ?? [];
 
 	const stackedNotes = async () => {
-		console.time('load stacked notes');
+		const t0 = Date.now();
 
 		const stacked = await Promise.all(
 			stack
@@ -110,13 +109,13 @@ export const load = async ({ locals, params, platform, url }) => {
 				.filter(Boolean)
 		);
 
-		console.timeEnd('load stacked notes');
+		console.log('load stacked notes took', Date.now() - t0);
 
 		return stacked;
 	};
 
 	const stackedNotesContent = async () => {
-		console.time('load stacked notes content');
+		const t0 = Date.now();
 		const stacked = await Promise.all(
 			stack.map(async (id) => {
 				const note = await platform.env.BUCKET.get(`notes/${id}`);
@@ -133,7 +132,7 @@ export const load = async ({ locals, params, platform, url }) => {
 			})
 		);
 
-		console.timeEnd('load stacked notes content');
+		console.log('load stacked notes content took', Date.now() - t0);
 		return stacked;
 	};
 
@@ -149,7 +148,7 @@ export const load = async ({ locals, params, platform, url }) => {
 			// get incoming link data
 			// const incomingLinks =
 			// TODO: get html from incoming links
-			console.time('load incoming links content');
+			const t0 = Date.now();
 			const notes = await Promise.all(
 				incomingLinks
 					.map(async (l) => {
@@ -167,12 +166,12 @@ export const load = async ({ locals, params, platform, url }) => {
 					.filter(Boolean)
 			);
 
-			console.timeEnd('load incoming links content');
+			console.log('load incoming links content took', Date.now() - t0);
 			return notes as NonNullable<(typeof notes)[number]>[];
 		})(),
 		incomingLinksContent: (async () => {
 			// get incoming link data
-			console.time('load incoming links content');
+			const t0 = Date.now();
 			const outgoingLinksContent = await Promise.all(
 				incomingLinks
 					.map(async (l) => {
@@ -189,7 +188,7 @@ export const load = async ({ locals, params, platform, url }) => {
 					})
 					.filter(Boolean)
 			);
-			console.timeEnd('load incoming links content');
+			console.log('load incoming links content took', Date.now() - t0);
 			return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 		})(),
 		outgoingLinksContent: getOutgoingLinksContent(),
