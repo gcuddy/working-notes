@@ -4,11 +4,7 @@
 
 	// export let action: (node: HTMLElement) => {};
 
-	let {
-		action,
-		arrow,
-		children
-	} = $props<{
+	let { action, arrow, children } = $props<{
 		action: (node: HTMLElement) => void;
 		arrow?: Writable<HTMLElement | null>;
 		children: Snippet;
@@ -21,10 +17,9 @@
 
 	{@render children()}
 
-
-    {#if arrow}
-        <div class="arrow" bind:this={$arrow}></div>
-    {/if}
+	{#if arrow}
+		<div class="arrow" bind:this={$arrow}></div>
+	{/if}
 </div>
 
 <style>
