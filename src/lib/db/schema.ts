@@ -1,5 +1,5 @@
 import { text, integer, sqliteTable, primaryKey } from 'drizzle-orm/sqlite-core';
-import { createInsertSchema } from 'drizzle-valibot';
+import { createInsertSchema } from 'drizzle-zod';
 
 export const notes = sqliteTable('notes', {
 	id: text('id').primaryKey(),
