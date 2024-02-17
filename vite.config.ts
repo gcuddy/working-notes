@@ -5,7 +5,7 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	build: {
 		rollupOptions: {
-			external: ['valibot']
+			external: ['valibot', 'drizzle-valibot']
 		}
 	},
 
