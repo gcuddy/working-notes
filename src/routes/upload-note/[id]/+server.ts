@@ -1,6 +1,11 @@
+import { AUTH_KEY } from '$env/static/private';
 import { notes } from '$lib/db/schema';
 
 export const PUT = async ({ locals, request, params, platform }) => {
+	const auth = request.headers.get('Authorization');
+	if (auth !== AUTH_KEY) {
+		return new Response('Unauthorized', { status: 401 });
+	}
 	try {
 		// TODO: validator
 		const data = (await request.json()) as {
@@ -11,7 +16,7 @@ export const PUT = async ({ locals, request, params, platform }) => {
 		console.dir({ data, platform }, { depth: null });
 
 		if (platform?.env.BUCKET) {
-			// console.log('HELLO', data, platform.env.BUCKET);
+			console.log('HELLO', data, platform.env.BUCKET);
 
 			const a = await platform.env.BUCKET.put(`notes/${params.id}`, data.content);
 			const key = a?.key;

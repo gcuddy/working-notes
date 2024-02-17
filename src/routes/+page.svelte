@@ -4,7 +4,7 @@
 	export let data;
 </script>
 
-<ul>
+<!-- <ul>
 	{#each data.notes as note}
 		<li>
 			<a href="/{note.id}">
@@ -12,11 +12,4 @@
 			</a>
 		</li>
 	{/each}
-</ul>
-<form method="post" use:enhance>
-	<input type="text" name="title" placeholder="Title" />
-
-	<textarea name="content" placeholder="Content"></textarea>
-
-	<button>Submit</button>
-</form>
+</ul> -->

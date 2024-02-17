@@ -1,6 +1,11 @@
+import { AUTH_KEY } from '$env/static/private';
 import { insertBacklinkSchema } from '$lib/db/schema';
 
 export const PUT = async ({ locals, request, params, platform }) => {
+	const auth = request.headers.get('Authorization');
+	if (auth !== AUTH_KEY) {
+		return new Response('Unauthorized', { status: 401 });
+	}
 	try {
 		const data = await request.json();
 		const parsed = insertBacklinkSchema.parse(data);
