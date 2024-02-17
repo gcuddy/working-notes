@@ -8,12 +8,16 @@ export const load = async ({ locals, params, platform, url }) => {
 
 	const [id, ...extra] = params.id.split('/');
 
+	console.time('load notes');
 	const n = (
 		await locals.db
 			.select()
 			.from(notes)
 			.where(eq(notes.id, id as string))
 	).at(0);
+	console.timeEnd('load notes');
+
+	console.time('load backlinks');
 
 	const outgoingLinks = await locals.db
 		.select({
@@ -26,6 +30,10 @@ export const load = async ({ locals, params, platform, url }) => {
 		.leftJoin(notes, eq(backlinks.target, notes.id))
 		.where(eq(backlinks.source, id as string));
 
+	console.timeEnd('load backlinks');
+
+	console.time('load incoming links');
+
 	const incomingLinks = await locals.db
 		.select({
 			source: backlinks.source,
@@ -37,11 +45,15 @@ export const load = async ({ locals, params, platform, url }) => {
 		.innerJoin(notes, sql`backlinks.source = notes.id`)
 		.where(sql`backlinks.target = ${id}`);
 
+	console.time('load incoming links');
+
 	// now lookup in r2
 
 	if (!n || !n.r2_key || !platform) {
 		throw error(404, 'Note not found');
 	}
+
+	console.time('load note');
 	const note = await platform.env.BUCKET.get(n.r2_key);
 	const body = await note?.text();
 
@@ -54,7 +66,10 @@ export const load = async ({ locals, params, platform, url }) => {
 
 	const vfile = await processor.process(body);
 
+	console.timeEnd('load note');
+
 	async function getOutgoingLinksContent() {
+		console.time('load outgoing links');
 		const outgoingLinksContent = await Promise.all(
 			outgoingLinks
 				.map(async (l) => {
@@ -72,40 +87,55 @@ export const load = async ({ locals, params, platform, url }) => {
 				})
 				.filter(Boolean)
 		);
+		console.timeEnd('load outgoing links');
 		return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 	}
 
 	const stack = url.searchParams.get('stack')?.split(',') ?? [];
 
-	const stackedNotes = Promise.all(
-		stack
-			.map(async (id) => {
-				const n = (await locals.db.select().from(notes).where(eq(notes.id, id))).at(0);
+	const stackedNotes = async () => {
+		console.time('load stacked notes');
 
-				if (!n || !n.r2_key || !platform) {
-					return;
-				}
+		const stacked = await Promise.all(
+			stack
+				.map(async (id) => {
+					const n = (await locals.db.select().from(notes).where(eq(notes.id, id))).at(0);
 
-				return n;
+					if (!n || !n.r2_key || !platform) {
+						return;
+					}
+
+					return n;
+				})
+				.filter(Boolean)
+		);
+
+		console.timeEnd('load stacked notes');
+
+		return stacked;
+	};
+
+	const stackedNotesContent = async () => {
+		console.time('load stacked notes content');
+		const stacked = await Promise.all(
+			stack.map(async (id) => {
+				const note = await platform.env.BUCKET.get(`notes/${id}`);
+				const body = await note?.text();
+
+				const vfile = await processor.process(body);
+
+				return [id, String(vfile)];
+
+				// return {
+				// 	id,
+				// 	html: String(vfile)
+				// };
 			})
-			.filter(Boolean)
-	);
+		);
 
-	const stackedNotesContent = Promise.all(
-		stack.map(async (id) => {
-			const note = await platform.env.BUCKET.get(`notes/${id}`);
-			const body = await note?.text();
-
-			const vfile = await processor.process(body);
-
-			return [id, String(vfile)];
-
-			// return {
-			// 	id,
-			// 	html: String(vfile)
-			// };
-		})
-	);
+		console.timeEnd('load stacked notes content');
+		return stacked;
+	};
 
 	return {
 		note: {
@@ -119,7 +149,8 @@ export const load = async ({ locals, params, platform, url }) => {
 			// get incoming link data
 			// const incomingLinks =
 			// TODO: get html from incoming links
-			return await Promise.all(
+			console.time('load incoming links content');
+			const notes = await Promise.all(
 				incomingLinks
 					.map(async (l) => {
 						if (!l.context) return;
@@ -135,9 +166,13 @@ export const load = async ({ locals, params, platform, url }) => {
 					})
 					.filter(Boolean)
 			);
+
+			console.timeEnd('load incoming links content');
+			return notes as NonNullable<(typeof notes)[number]>[];
 		})(),
 		incomingLinksContent: (async () => {
 			// get incoming link data
+			console.time('load incoming links content');
 			const outgoingLinksContent = await Promise.all(
 				incomingLinks
 					.map(async (l) => {
@@ -154,11 +189,12 @@ export const load = async ({ locals, params, platform, url }) => {
 					})
 					.filter(Boolean)
 			);
+			console.timeEnd('load incoming links content');
 			return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 		})(),
 		outgoingLinksContent: getOutgoingLinksContent(),
 		stackedNotes: stack.length
-			? await stackedNotes.then((s) => {
+			? await stackedNotes().then((s) => {
 					// if (!s.some((s) => s?.id === n.id)) {
 					// 	return s.filter(Boolean).concat(n);
 					// }
@@ -166,7 +202,7 @@ export const load = async ({ locals, params, platform, url }) => {
 				})
 			: undefined,
 		stackedNoteContent: stack.length
-			? await stackedNotesContent.then((c) => Object.fromEntries(c))
+			? await stackedNotesContent().then((c) => Object.fromEntries(c))
 			: undefined
 	};
 };
