@@ -3,11 +3,15 @@
 	import { page } from '$app/stores';
 	import HoverNote from '$lib/components/hover-note.svelte';
 	import { useFloatingActions } from '$lib/floating-ui';
+	import { writable } from 'svelte/store';
 	import { scale } from 'svelte/transition';
 
 	let currentId = $state<string | null>(null);
 
-	const [ref, content] = useFloatingActions();
+	const arrowEl = writable<HTMLElement | null>(null);
+	const [ref, content] = useFloatingActions({
+		arrowEl
+	});
 
 	function slugify(text: string) {
 		return text
@@ -94,7 +98,7 @@
 			{/each}
 		</ul>
 		{#if currentId && $page.data.stackedNoteContent?.[currentId]}
-			<HoverNote action={content}>
+			<HoverNote arrow={arrowEl} action={content}>
 				{@html $page.data.stackedNoteContent[currentId]}
 			</HoverNote>
 		{/if}

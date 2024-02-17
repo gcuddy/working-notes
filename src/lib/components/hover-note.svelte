@@ -1,10 +1,16 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { writable, type Writable } from 'svelte/store';
 
 	// export let action: (node: HTMLElement) => {};
 
-	let { action, children } = $props<{
+	let {
+		action,
+		arrow,
+		children
+	} = $props<{
 		action: (node: HTMLElement) => void;
+		arrow?: Writable<HTMLElement | null>;
 		children: Snippet;
 	}>();
 </script>
@@ -14,6 +20,11 @@
 	<!-- {@html idToHtmlMap.get(currentId)} -->
 
 	{@render children()}
+
+
+    {#if arrow}
+        <div class="arrow" bind:this={$arrow}></div>
+    {/if}
 </div>
 
 <style>

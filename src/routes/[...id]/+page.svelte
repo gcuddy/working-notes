@@ -154,7 +154,7 @@
 	}
 
 	.backlinks li {
-		height: 96px;
+		height: auto;
 		overflow: hidden;
 		/* line clamp? */
 		border-radius: 8px;
