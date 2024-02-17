@@ -3,12 +3,16 @@ import { useProcessor } from '$lib/markdown';
 import { error, type Actions, type ServerLoad } from '@sveltejs/kit';
 import { eq, sql } from 'drizzle-orm';
 
-export const load = async ({ locals, params, platform }) => {
+export const load = async ({ locals, params, platform, url }) => {
+	console.log({ params });
+
+	const [id, ...extra] = params.id.split('/');
+
 	const n = (
 		await locals.db
 			.select()
 			.from(notes)
-			.where(eq(notes.id, params.id as string))
+			.where(eq(notes.id, id as string))
 	).at(0);
 
 	const outgoingLinks = await locals.db
@@ -20,7 +24,7 @@ export const load = async ({ locals, params, platform }) => {
 		})
 		.from(backlinks)
 		.leftJoin(notes, eq(backlinks.target, notes.id))
-		.where(eq(backlinks.source, params.id as string));
+		.where(eq(backlinks.source, id as string));
 
 	const incomingLinks = await locals.db
 		.select({
@@ -31,7 +35,7 @@ export const load = async ({ locals, params, platform }) => {
 		})
 		.from(backlinks)
 		.innerJoin(notes, sql`backlinks.source = notes.id`)
-		.where(sql`backlinks.target = ${params.id}`);
+		.where(sql`backlinks.target = ${id}`);
 
 	// now lookup in r2
 
@@ -41,7 +45,6 @@ export const load = async ({ locals, params, platform }) => {
 	const note = await platform.env.BUCKET.get(n.r2_key);
 	const body = await note?.text();
 
-	console.log({ outgoingLinks });
 	const processor = useProcessor(
 		outgoingLinks.map((l) => ({
 			id: l.target ?? '',
@@ -71,6 +74,38 @@ export const load = async ({ locals, params, platform }) => {
 		);
 		return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 	}
+
+	const stack = url.searchParams.get('stack')?.split(',') ?? [];
+
+	const stackedNotes = Promise.all(
+		stack
+			.map(async (id) => {
+				const n = (await locals.db.select().from(notes).where(eq(notes.id, id))).at(0);
+
+				if (!n || !n.r2_key || !platform) {
+					return;
+				}
+
+				return n;
+			})
+			.filter(Boolean)
+	);
+
+	const stackedNotesContent = Promise.all(
+		stack.map(async (id) => {
+			const note = await platform.env.BUCKET.get(`notes/${id}`);
+			const body = await note?.text();
+
+			const vfile = await processor.process(body);
+
+			return [id, String(vfile)];
+
+			// return {
+			// 	id,
+			// 	html: String(vfile)
+			// };
+		})
+	);
 
 	return {
 		note: {
@@ -121,7 +156,18 @@ export const load = async ({ locals, params, platform }) => {
 			);
 			return outgoingLinksContent as NonNullable<(typeof outgoingLinksContent)[number]>[];
 		})(),
-		outgoingLinksContent: getOutgoingLinksContent()
+		outgoingLinksContent: getOutgoingLinksContent(),
+		stackedNotes: stack.length
+			? await stackedNotes.then((s) => {
+					// if (!s.some((s) => s?.id === n.id)) {
+					// 	return s.filter(Boolean).concat(n);
+					// }
+					return s.filter(Boolean);
+				})
+			: undefined,
+		stackedNoteContent: stack.length
+			? await stackedNotesContent.then((c) => Object.fromEntries(c))
+			: undefined
 	};
 };
 
@@ -139,7 +185,6 @@ export const actions: Actions = {
 			// 		content,
 			// 		updated_at: new Date()
 			// 	})
-			// 	.where(eq(notes.id, params.id as string));
 		}
 	}
 };

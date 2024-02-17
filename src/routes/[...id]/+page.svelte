@@ -2,6 +2,10 @@
 	import { offset, flip, shift } from 'svelte-floating-ui/dom';
 	import { createFloatingActions } from 'svelte-floating-ui';
 	import { onMount } from 'svelte';
+	import { goto, preloadData, pushState } from '$app/navigation';
+	import { page } from '$app/stores';
+	import type { Note } from '$lib/types';
+	import HoverNote from '$lib/components/hover-note.svelte';
 
 	let { data } = $props();
 
@@ -17,7 +21,7 @@
 
 	$effect(() => {
 		(async () => {
-            console.log('running data effect')
+			console.log('running data effect');
 			const outgoing = await data.outgoingLinksContent;
 			const incoming = await data.incomingLinksContent;
 			console.log({ outgoing, incoming });
@@ -34,18 +38,50 @@
 			// console.log('idToHtmlMap', idToHtmlMap);
 		})();
 	});
+
+	async function handleClick(e: MouseEvent) {
+		console.log({ e });
+		const href = (e.target as HTMLElement).closest('a')?.href;
+		if (href) {
+			if (e.metaKey) return;
+			e.preventDefault();
+
+			const url = new URL(href);
+			if (url.toString().startsWith(window.location.origin)) {
+				const currentUrl = new URL(window.location.href);
+				let stack = currentUrl.searchParams.has('stack')
+					? currentUrl.searchParams.get('stack')!.split(',')
+					: [];
+
+				const id = currentUrl.pathname.slice(1).split('/')[0];
+				if (stack.includes(id)) {
+					// stack.splice(stack.indexOf(id), 1);
+					// const index = stack.indexOf(id);
+					// stack = stack.slice(0, index);
+				} else {
+					stack.push(id);
+				}
+
+				url.searchParams.set('stack', stack.join(','));
+
+				goto(url);
+
+				return;
+			}
+		}
+	}
 </script>
 
 {#if currentId && idToHtmlMap.has(currentId)}
-	<div style="position:absolute; background: white;" class="hover-note" use:floatingContent>
-		<!-- {@const link = links.filter(Boolean).find((link) => link.id === currentId)} -->
+	<HoverNote action={floatingContent}>
 		{@html idToHtmlMap.get(currentId)}
-	</div>
+	</HoverNote>
 {/if}
 
 <div
 	role="main"
 	class="content"
+	on:click={handleClick}
 	on:focus
 	on:mouseover={(e) => {
 		if (e.target instanceof HTMLAnchorElement) {
@@ -67,11 +103,8 @@
 	{@html data.note?.html}
 </div>
 
-<hr />
-
-<h2>Backlinks</h2>
-
-<div class="backlinks">
+<div class="backlinks" on:click={handleClick}>
+	<h2>Backlinks</h2>
 	<ul>
 		{#await data.incomingLinks then incomingLinks}
 			{#each incomingLinks as backlink}
@@ -80,7 +113,7 @@
 					<a
 						href="/{backlink.source}"
 						on:mouseover={(e) => {
-							if (e.target instanceof HTMLAnchorElement) {
+							if (e.currentTarget instanceof HTMLAnchorElement) {
 								currentId = backlink.source;
 								floatingRef(e.target);
 							}
@@ -89,7 +122,7 @@
 							currentId = null;
 						}}
 					>
-						<span>{backlink.title}</span>
+						<span class="backlink-title">{backlink.title}</span>
 						<div class="backlink-context">
 							{@html backlink.html}
 						</div>
@@ -102,56 +135,73 @@
 
 <style>
 	h1 {
+		line-height: 1;
 	}
 	.backlinks {
 		padding: 16px;
 		background: #f4f4f4;
 		margin: 0;
+		max-width: 65ch;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.backlinks h2 {
+		margin: 0;
+		font-size: 20px;
+		letter-spacing: -0.01em;
+	}
+
+	.backlinks li {
+		height: 96px;
+		overflow: hidden;
+		/* line clamp? */
+		border-radius: 8px;
+		user-select: none;
+		padding: 8px;
+		transition: background-color 0.2s;
+		padding: 8px;
+		border: 1px solid #ccc;
+	}
+
+	.backlinks li:hover {
+		background-color: #f0f0f0;
+	}
+	.backlink-title {
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		color: #333;
 	}
 
 	.backlinks ul {
 		padding: 0;
 		list-style: none;
-
 		margin: 0;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+	}
+
+	@media (max-width: 640px) {
+		.backlinks ul {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	.backlinks a {
 		display: block;
-		padding: 8px;
-		border: 1px solid #ccc;
-		margin: 8px 0;
 		text-decoration: none;
-	}
-
-	.hover-note {
-		pointer-events: none;
-		background-color: #fff;
-		border-radius: 8px;
-		z-index: 50;
-		box-shadow:
-			0 10px 15px -3px rgb(0 0 0 / 0.1),
-			0 4px 6px -4px rgb(0 0 0 / 0.1);
-		padding: 16px;
-		max-width: 300px;
 	}
 
 	.content {
 		padding: 16px;
 		max-width: 65ch;
 		margin: 0 auto;
-		font-family:
-			system-ui,
-			-apple-system,
-			BlinkMacSystemFont,
-			'Segoe UI',
-			Roboto,
-			Oxygen,
-			Ubuntu,
-			Cantarell,
-			'Open Sans',
-			'Helvetica Neue',
-			sans-serif;
 		line-height: 1.5;
 	}
 
@@ -162,5 +212,17 @@
 
 	.backlink-context {
 		pointer-events: none;
+		color: #666;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+
+		font-size: 14px;
+	}
+
+	.backlink-context :global(a) {
+		color: inherit;
+		text-decoration: none;
 	}
 </style>

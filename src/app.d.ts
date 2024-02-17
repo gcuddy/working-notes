@@ -9,8 +9,18 @@ declare global {
 		interface Locals {
 			db: DrizzleD1Database;
 		}
-		// interface PageData {}
-		// interface PageState {}
+		interface PageData {
+			stackedNotes?: { id: string; title: string }[];
+			// this should probably be a map
+			// noteMap?: Record<string, { id: string; title: string; html: string }>;
+			// map id -> html
+			stackedNoteContent?: Record<string, string>;
+		}
+		interface PageState {
+			// eventually this...
+			// tree?: import('$lib/types.js').TreeNode<import('$lib/types.js').Note>;
+			stack?: import('$lib/types.js').Note[];
+		}
 		interface Platform {
 			env: {
 				BUCKET: R2Bucket;
