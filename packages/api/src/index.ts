@@ -1,9 +1,24 @@
-import { Hono } from 'hono'
+import { trpcServer } from "@hono/trpc-server";
+import { Hono } from "hono";
+import { appRouter } from "./router";
 
-const app = new Hono()
+type Bindings = {
+  DB: D1Database;
+  BUCKET: R2Bucket;
+  APP_URL: string;
+};
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+const app = new Hono<{ Bindings: Bindings }>();
 
-export default app
+app.use(
+  "/trpc/*",
+  trpcServer({
+    router: appRouter,
+  })
+);
+
+app.get("/", (c) => {
+  return c.text("Hello Hono!");
+});
+
+export default app;
