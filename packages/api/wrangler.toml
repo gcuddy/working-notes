@@ -1,18 +1,14 @@
-name = "api"
+name = "notes-api"
 compatibility_date = "2023-12-01"
+compatibility_flags = ['nodejs_compat']
+node_compat = true
 
-# [vars]
-# MY_VARIABLE = "production_value"
+[[d1_databases]]
+binding = "DB"                                       # i.e. available in your Worker on env.DB
+database_name = "notes"
+database_id = "1d688442-462d-44bc-9bc5-aa60ed6eaac5"
+migrations_dir = "migrations"
 
-# [[kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-# [[r2_buckets]]
-# binding = "MY_BUCKET"
-# bucket_name = "my-bucket"
-
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "my-database"
-# database_id = ""
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "working-notes"
