@@ -1,5 +1,5 @@
-import { inferAsyncReturnType } from "@trpc/server";
 import { DrizzleD1Database } from "drizzle-orm/d1";
+import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { createDb } from "./db/client";
 
 interface ApiContextProps {
@@ -7,7 +7,8 @@ interface ApiContextProps {
 }
 
 export const createContext = async (
-  d1: D1Database
+  d1: D1Database,
+  opts: FetchCreateContextFnOptions
 ): Promise<ApiContextProps> => {
   const db = createDb(d1);
 
