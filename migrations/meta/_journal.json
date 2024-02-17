@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1707932034814,
-      "tag": "0000_even_captain_universe",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1708040997901,
-      "tag": "0001_slimy_richard_fisk",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1708043776695,
-      "tag": "0002_amazing_demogoblin",
+      "when": 1708189163453,
+      "tag": "0000_simple_molten_man",
       "breakpoints": true
     }
   ]

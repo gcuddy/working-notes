@@ -1,9 +1,54 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "be995dd3-494b-4235-a9e2-277098aa9f06",
+  "id": "7564d1ca-f101-4687-9e31-2cad4d3b2ba1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "backlinks": {
+      "name": "backlinks",
+      "columns": {
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "target": {
+          "name": "target",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "target_text": {
+          "name": "target_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "context": {
+          "name": "context",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "backlinks_source_target_pk": {
+          "columns": [
+            "source",
+            "target"
+          ],
+          "name": "backlinks_source_target_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "notes": {
       "name": "notes",
       "columns": {
@@ -21,8 +66,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "content": {
-          "name": "content",
+        "r2_key": {
+          "name": "r2_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
