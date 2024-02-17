@@ -1,11 +1,8 @@
 <script lang="ts">
-	import { offset, flip, shift } from 'svelte-floating-ui/dom';
-	import { createFloatingActions } from 'svelte-floating-ui';
-	import { onMount } from 'svelte';
-	import { goto, preloadData, pushState } from '$app/navigation';
-	import { page } from '$app/stores';
-	import type { Note } from '$lib/types';
+	import { goto } from '$app/navigation';
 	import HoverNote from '$lib/components/hover-note.svelte';
+	import { createFloatingActions } from 'svelte-floating-ui';
+	import { flip, offset, shift } from 'svelte-floating-ui/dom';
 
 	let { data } = $props();
 
