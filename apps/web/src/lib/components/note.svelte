@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import HoverNote from '$lib/components/hover-note.svelte';
 	import { trpc, type RouterOutputs } from '$lib/trpc';
+	import { createQueries } from '@tanstack/svelte-query';
 	import { createFloatingActions } from 'svelte-floating-ui';
 	import { flip, offset, shift } from 'svelte-floating-ui/dom';
 
@@ -14,14 +15,62 @@
 	});
 
 	const [floatingRef, floatingContent] = createFloatingActions({
-		strategy: 'absolute',
-		placement: 'top',
+		strategy: 'fixed',
+		placement: 'right',
 		middleware: [offset(6), flip(), shift()]
 	});
 
 	let currentId = $state<string | null>(null);
 
+	const idToTitleMap = new Map<string, string>();
+
+	$effect(() => {
+		for (const link of note.backlinks) {
+			if (link.noteId && link.title) idToTitleMap.set(link.noteId, link.title);
+		}
+
+		for (const link of note.outgoingLinks) {
+			if (link.noteId && link.target_text) idToTitleMap.set(link.noteId, link.target_text);
+		}
+	});
+
 	const idToHtmlMap = new Map<string, string>();
+
+	// let queries = $derived(
+	// 	note.outgoingLinks.map((link) => trpc().notes.note.createQuery(link.noteId))
+	// );
+	/// what's difference between ^^ and usequeries?
+	// answered: lots of things lol - one store, using context correctly
+
+	// $effect(() => {
+	// 	console.log('queries', queries);
+	// });
+
+	// const client = trpc();
+
+	// const utils = client.createUtils();
+
+	// const queries = createQueries({
+	// 	queries: note.outgoingLinks.map((link) => {
+	// 		return {
+	// 			queryKey: client.notes.note.getQueryKey(link.noteId),
+	// 			queryFn: utils.client.notes.note.query(link.noteId)
+	// 		};
+	// 	})
+	// });
+	// TODO: can't figure out createQueries - it seems to be broken!
+
+	$effect(() => {
+		console.log('outgoing', note.outgoingLinks);
+
+		// const queries = trpc().createQueries((q) => {
+		// 	console.log('creating queries');
+		// 	console.log({ q });
+		// 	const t = q.notes.note('123');
+		// 	console.log({ t });
+		// 	return [t];
+		// });
+	});
 
 	$effect(() => {
 		(async () => {
@@ -42,9 +91,14 @@
 	});
 
 	async function handleClick(e: MouseEvent) {
-		return;
+		console.log('click click ');
 		console.log({ e });
-		if (!(e.target as HTMLElement).closest('.content, .backlinks')) return;
+		if (
+			!(e.target as HTMLElement).closest('.content') ||
+			!(e.target as HTMLElement).closest('.backlinks')
+		)
+			return;
+		console.log('click');
 		const href = (e.target as HTMLElement).closest('a')?.href;
 		if (href) {
 			if (e.metaKey) return;
@@ -76,10 +130,8 @@
 	}
 </script>
 
-{#if currentId && idToHtmlMap.has(currentId)}
-	<HoverNote action={floatingContent}>
-		{@html idToHtmlMap.get(currentId)}
-	</HoverNote>
+{#if currentId}
+	<HoverNote title={idToTitleMap.get(currentId)} action={floatingContent} noteId={currentId} />
 {/if}
 
 <svelte:document on:click={handleClick} />
@@ -92,7 +144,7 @@
 			const url = new URL(e.target.href);
 			if (url.toString().startsWith(window.location.origin)) {
 				console.log('local link');
-				currentId = url.pathname.slice(1);
+				currentId = url.pathname.slice(1).replace('trpc-test/', '');
 				floatingRef(e.target);
 				return;
 			}
@@ -125,7 +177,8 @@
 				>
 					<span class="backlink-title">{backlink.title}</span>
 					<div class="backlink-context">
-						{@html backlink.context}
+						{@html backlink.target_text}
+						<!-- {@html backlink.context} -->
 					</div>
 				</a>
 			</li>

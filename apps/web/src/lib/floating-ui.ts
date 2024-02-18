@@ -5,7 +5,7 @@ import { get, type Writable } from 'svelte/store';
 export function useFloatingActions(opts?: { arrowEl?: Writable<HTMLElement | null> }) {
 	return createFloatingActions({
 		strategy: 'absolute',
-		placement: 'top',
+		placement: 'right',
 		middleware: [
 			offset(6),
 			flip(),
