@@ -9,6 +9,10 @@
 		note: RouterOutputs['notes']['note'];
 	}>();
 
+	$effect(() => {
+		console.log({ note });
+	});
+
 	const [floatingRef, floatingContent] = createFloatingActions({
 		strategy: 'absolute',
 		placement: 'top',
@@ -38,6 +42,7 @@
 	});
 
 	async function handleClick(e: MouseEvent) {
+		return;
 		console.log({ e });
 		if (!(e.target as HTMLElement).closest('.content, .backlinks')) return;
 		const href = (e.target as HTMLElement).closest('a')?.href;
@@ -104,27 +109,30 @@
 <div class="backlinks">
 	<h2>Backlinks</h2>
 	<ul>
+		{#each note.backlinks as backlink}
+			<li>
+				<a
+					href="/trpc-test/{backlink.noteId}"
+					on:mouseover={(e) => {
+						if (e.currentTarget instanceof HTMLAnchorElement) {
+							currentId = backlink.noteId;
+							floatingRef(e.currentTarget);
+						}
+					}}
+					on:mouseout={() => {
+						currentId = null;
+					}}
+				>
+					<span class="backlink-title">{backlink.title}</span>
+					<div class="backlink-context">
+						{@html backlink.context}
+					</div>
+				</a>
+			</li>
+		{/each}
 		<!-- {#await data.incomingLinks then incomingLinks}
 			{#each incomingLinks as backlink}
-				<li>
-					<a
-						href="/{backlink.source}"
-						on:mouseover={(e) => {
-							if (e.currentTarget instanceof HTMLAnchorElement) {
-								currentId = backlink.source;
-								floatingRef(e.target);
-							}
-						}}
-						on:mouseout={() => {
-							currentId = null;
-						}}
-					>
-						<span class="backlink-title">{backlink.title}</span>
-						<div class="backlink-context">
-							{@html backlink.html}
-						</div>
-					</a>
-				</li>
+
 			{/each}
 		{/await} -->
 	</ul>

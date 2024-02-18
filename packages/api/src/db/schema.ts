@@ -1,4 +1,4 @@
-import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 import {
   text,
   integer,
@@ -34,6 +34,21 @@ export const BacklinksTable = sqliteTable(
     }),
   })
 );
+
+export const notesLinkRelations = relations(NotesTable, ({ many }) => ({
+  backlinks: many(BacklinksTable, { relationName: "source" }),
+}));
+
+export const backlinksRelations = relations(BacklinksTable, ({ one }) => ({
+  source: one(NotesTable, {
+    fields: [BacklinksTable.source],
+    references: [NotesTable.id],
+  }),
+  //   target: one(NotesTable, {
+  //     fields: [BacklinksTable.target],
+  //     references: [NotesTable.id],
+  //   }),
+}));
 
 export type Backlinks = InferSelectModel<typeof BacklinksTable>;
 export type InsertBacklinks = InferInsertModel<typeof BacklinksTable>;

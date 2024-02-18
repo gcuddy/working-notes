@@ -2,13 +2,17 @@
 	import Note from '$lib/components/note.svelte';
 	import * as query from '$lib/utils/query';
 
-	let { data } = $props();
+	// let { data } = $props();
+	export let data;
 
-	let noteData = data.note();
+	// have to use old svelte 4 syntax for now (to be reactive)
 
-	$effect(() => {
-		console.log({ $noteData });
-	});
+	$: noteData = data.note();
+
+	// $effect(() => {
+	// 	console.log({ data, note:  data.note() });
+	// 	noteData = data.note();
+	// });
 </script>
 
 {#if query.error($noteData)}

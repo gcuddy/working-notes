@@ -4,7 +4,7 @@ import remarkWikiLink from "remark-wiki-link";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
-import rehypeRaw from "rehype-raw";
+// import rehypeRaw from "rehype-raw";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
@@ -14,7 +14,7 @@ import { remarkMark } from "remark-mark-highlight";
 export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
   unified()
     .use(remarkParse as any)
-    .use(remarkFrontmatter as any)
+    // .use(remarkFrontmatter as any)
     .use(remarkGfm)
     .use(remarkSmartypants)
     .use(remarkMark as any)
@@ -31,7 +31,7 @@ export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
         }
         return [`${name}`];
       },
-      hrefTemplate: (permalink) => {
+      hrefTemplate: (permalink: string) => {
         return `/${permalink}`;
       },
     })
@@ -39,5 +39,5 @@ export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
       allowDangerousHtml: true,
       passThrough: [],
     })
-    .use(rehypeRaw)
+    // .use(rehypeRaw)
     .use(rehypeStringify, { allowDangerousHtml: true });

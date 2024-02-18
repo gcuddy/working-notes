@@ -3,7 +3,7 @@ import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { createDb } from "./db/client";
 
 interface ApiContextProps {
-  db: DrizzleD1Database;
+  db: ReturnType<typeof createDb>;
   bucket: R2Bucket;
 }
 
