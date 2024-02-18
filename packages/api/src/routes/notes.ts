@@ -43,13 +43,13 @@ export const notesRouter = router({
 
         const outgoingLinksPromise = db
           .select({
-            target: BacklinksTable.target,
-            target_text: BacklinksTable.target_text,
+            noteId: NotesTable.id,
+            target_text: NotesTable.title,
             r2_key: NotesTable.r2_key,
           })
           .from(BacklinksTable)
-          .innerJoin(NotesTable, eq(BacklinksTable.target, NotesTable.id))
-          .where(eq(BacklinksTable.source, note.id));
+          .where(eq(BacklinksTable.target, note.id))
+          .innerJoin(NotesTable, eq(BacklinksTable.source, NotesTable.id));
 
         const [backlinks, outgoingLinks] = await Promise.all([
           backlinksPromise,
@@ -61,7 +61,12 @@ export const notesRouter = router({
         const obj = await bucket.get(note.r2_key as string);
         const noteText = await obj?.text();
 
-        const processor = useProcessor([]);
+        const processor = useProcessor(
+          outgoingLinks.map((l) => ({
+            id: l.noteId,
+            slug: l.target_text ?? "",
+          }))
+        );
 
         const html = processor.processSync(noteText).toString();
 

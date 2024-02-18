@@ -27,7 +27,7 @@ export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
         const p = permalinks.find((p) => p.slug === name);
         console.log({ p, permalinks, name });
         if (p) {
-          return [`${p.id}`];
+          return [`trpc-test/${p.id}`];
         }
         return [`${name}`];
       },
