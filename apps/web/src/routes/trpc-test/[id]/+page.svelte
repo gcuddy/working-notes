@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { trpc } from '$lib/trpc';
 	import * as query from '$lib/utils/query';
 
-	const noteData = trpc().notes.note.createQuery('3getk5kr8hk');
+	let { data } = $props();
+
+	let noteData = data.note();
 
 	$effect(() => {
 		console.log({ $noteData });
