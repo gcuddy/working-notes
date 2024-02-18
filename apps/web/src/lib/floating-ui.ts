@@ -1,4 +1,4 @@
-import { offset, flip, shift } from 'svelte-floating-ui/dom';
+import { offset, flip, autoPlacement, shift } from 'svelte-floating-ui/dom';
 import { createFloatingActions, arrow } from 'svelte-floating-ui';
 import { get, type Writable } from 'svelte/store';
 
@@ -8,7 +8,8 @@ export function useFloatingActions(opts?: { arrowEl?: Writable<HTMLElement | nul
 		placement: 'right',
 		middleware: [
 			offset(6),
-			flip(),
+			// flip(),
+			autoPlacement(),
 			shift(),
 			...(opts?.arrowEl ? [arrow({ element: opts.arrowEl })] : [])
 		],

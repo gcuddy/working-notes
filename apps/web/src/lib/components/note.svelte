@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import HoverNote from '$lib/components/hover-note.svelte';
+	import { useFloatingActions } from '$lib/floating-ui';
 	import { trpc, type RouterOutputs } from '$lib/trpc';
 	import { createQueries } from '@tanstack/svelte-query';
 	import { createFloatingActions } from 'svelte-floating-ui';
@@ -14,11 +16,7 @@
 		console.log({ note });
 	});
 
-	const [floatingRef, floatingContent] = createFloatingActions({
-		strategy: 'fixed',
-		placement: 'right',
-		middleware: [offset(6), flip(), shift()]
-	});
+	const [floatingRef, floatingContent] = useFloatingActions();
 
 	let currentId = $state<string | null>(null);
 
@@ -93,11 +91,10 @@
 	async function handleClick(e: MouseEvent) {
 		console.log('click click ');
 		console.log({ e });
-		if (
-			!(e.target as HTMLElement).closest('.content') ||
-			!(e.target as HTMLElement).closest('.backlinks')
-		)
-			return;
+		// if ( !(e.target as HTMLElement).closest('.content') ||
+		// 	!(e.target as HTMLElement).closest('.backlinks')
+		// )
+		// 	return;
 		console.log('click');
 		const href = (e.target as HTMLElement).closest('a')?.href;
 		if (href) {
@@ -106,12 +103,11 @@
 
 			const url = new URL(href);
 			if (url.toString().startsWith(window.location.origin)) {
-				const currentUrl = new URL(window.location.href);
-				let stack = currentUrl.searchParams.has('stack')
-					? currentUrl.searchParams.get('stack')!.split(',')
+				let stack = $page.url.searchParams.has('stack')
+					? $page.url.searchParams.get('stack')!.split(',')
 					: [];
 
-				const id = currentUrl.pathname.slice(1).split('/')[0];
+				const id = $page.url.pathname.slice(1).replace('trpc-test/', '').split('/')[0];
 				if (stack.includes(id)) {
 					// stack.splice(stack.indexOf(id), 1);
 					// const index = stack.indexOf(id);
