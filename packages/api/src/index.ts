@@ -32,6 +32,16 @@ app.use("/trpc/*", async (c, next) => {
     createContext: async (opts) => {
       return await createContext(c.env.DB, c.env.BUCKET, opts);
     },
+    responseMeta({ type, errors }) {
+      if (type === "query" && errors.length === 0) {
+        return {
+          headers: {
+            "Cache-Control": `s-maxage=1, stale-while-revalidate=${60 * 60 * 24}`,
+          },
+        };
+      }
+      return {};
+    },
   })(c, next);
 });
 
