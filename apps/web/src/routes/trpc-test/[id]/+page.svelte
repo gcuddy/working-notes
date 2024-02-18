@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Note from '$lib/components/note.svelte';
 	import * as query from '$lib/utils/query';
 
 	let { data } = $props();
@@ -17,7 +18,7 @@
 {:else if query.empty($noteData)}
 	nothing found
 {:else if query.success($noteData)}
-	{JSON.stringify($noteData.data, null, 2)}
+	<Note note={$noteData.data} />
 {:else}
 	<p>Something went wrong</p>
 {/if}

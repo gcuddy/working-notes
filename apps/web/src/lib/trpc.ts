@@ -1,5 +1,5 @@
 import { createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
-import type { AppRouter } from '@gus/api/src/router';
+import type { AppRouter, RouterOutputs } from '@gus/api/src/router';
 import SuperJSON from 'superjson';
 import type { QueryClient } from '@tanstack/svelte-query';
 import { svelteQueryWrapper } from 'trpc-svelte-query-adapter';
@@ -45,4 +45,4 @@ export function trpc(opts?: { queryClient?: QueryClient; fetch?: typeof window.f
 	});
 }
 
-// let browserClient: ReturnType<typeof svelteQueryWrapper<AppRouter>>; // TODO: ssr by passing in fetch function from sveltekit (see trpc-sveltekit code) export function trpc(queryClient?: QueryClient) { const isBrowser = typeof window !== 'undefined'; if (isBrowser && browserClient) return browserClient; const _client = svelteQueryWrapper<AppRouter>({ client, queryClient }); if (isBrowser) browserClient = _client; return client; }
+export type { RouterOutputs };
