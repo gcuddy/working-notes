@@ -11,3 +11,7 @@ migrations_dir = "migrations"
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "working-notes"
+
+
+[vars]
+APP_URL = "https://1192a0fb.gus-notes.pages.dev"
