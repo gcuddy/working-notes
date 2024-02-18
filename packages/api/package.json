@@ -2,7 +2,13 @@
   "name": "@gus/api",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "generate": "drizzle-kit generate:sqlite --schema=./src/db/schema.ts --out=./migrations",
+    "migrate": "wrangler d1 migrations apply notes",
+    "migrate:local": "wrangler d1 migrations apply notes --local",
+    "seed": "wrangler d1 execute notes --file=./seed/seed.sql",
+    "seed:local": "wrangler d1 execute notes --local --file=./seed/seed.sql",
+    "studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.1.1",

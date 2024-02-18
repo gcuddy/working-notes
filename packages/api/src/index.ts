@@ -16,6 +16,7 @@ app.use("/trpc/*", async (c, next) => {
   if (c.env.APP_URL === undefined) {
     console.log("APP_URL is not defined. CORS errors may occur.");
   }
+
   return await cors({
     origin: (origin) =>
       origin.endsWith(new URL(c.env.APP_URL).host) ? origin : c.env.APP_URL,
@@ -25,10 +26,11 @@ app.use("/trpc/*", async (c, next) => {
 });
 
 app.use("/trpc/*", async (c, next) => {
+  console.log("HELLO????");
   return await trpcServer({
     router: appRouter,
     createContext: async (opts) => {
-      return await createContext(c.env.DB, opts);
+      return await createContext(c.env.DB, c.env.BUCKET, opts);
     },
   })(c, next);
 });

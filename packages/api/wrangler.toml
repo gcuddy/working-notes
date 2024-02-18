@@ -1,7 +1,6 @@
 name = "notes-api"
 compatibility_date = "2023-12-01"
 compatibility_flags = ['nodejs_compat']
-node_compat = true
 
 [[d1_databases]]
 binding = "DB"                                       # i.e. available in your Worker on env.DB

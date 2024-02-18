@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import HoverNote from '$lib/components/hover-note.svelte';
+	import { trpc } from '$lib/trpc';
 	import { createFloatingActions } from 'svelte-floating-ui';
 	import { flip, offset, shift } from 'svelte-floating-ui/dom';
 
@@ -10,6 +11,12 @@
 		strategy: 'absolute',
 		placement: 'top',
 		middleware: [offset(6), flip(), shift()]
+	});
+
+	const noteData = trpc().notes.note.createQuery(data.note.id);
+
+	$effect(() => {
+		console.log({ $noteData });
 	});
 
 	let currentId = $state<string | null>(null);
