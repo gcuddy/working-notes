@@ -27,7 +27,7 @@
 	{#if query.error($queryData)}
 		<p>{$queryData.failureReason.message}</p>
 	{:else if query.loading($queryData)}
-		<div>...</div>
+		<a href="/trpc-test/{id}">...</a>
 	{:else if query.empty($queryData)}
 		<!--  -->
 	{:else if query.success($queryData)}
@@ -36,6 +36,7 @@
 		<a
 			href="/trpc-test/{id}"
 			use:ref
+			class:active={$page.params.id === id}
 			on:click={(e) => {
 				if (e.metaKey) return;
 				e.preventDefault();
@@ -104,5 +105,9 @@
 	a {
 		text-decoration: none;
 		color: #333;
+	}
+
+	.active {
+		font-style: italic;
 	}
 </style>
