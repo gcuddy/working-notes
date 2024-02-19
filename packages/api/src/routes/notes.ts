@@ -81,17 +81,11 @@ export const notesRouter = router({
         console.log("notes.note - error", e);
         throw e;
       }
-
-      // TODO: should we throw if it doesn't exist?
-
-      //   TODO: backlinks, rendering
     }),
-  /**
-   * Just gets the metadata for a note, not its content or links
-   */
-  noteMeta: publicProcedure
-    .input((raw) => parse(string(), raw))
-    .query(async ({ ctx, input }) => {
 
-    }),
+  list: publicProcedure.query(async ({ ctx }) => {
+    const { db } = ctx;
+    const notes = await db.select().from(NotesTable);
+    return notes;
+  }),
 });

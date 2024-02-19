@@ -4,7 +4,9 @@
 	import HoverNote from '$lib/components/hover-note.svelte';
 	import { useFloatingActions } from '$lib/floating-ui';
 	import { writable } from 'svelte/store';
-	import { scale } from 'svelte/transition';
+	import Sidebar from './sidebar.svelte';
+	import { useQueryClient } from '@tanstack/svelte-query';
+	import { trpc } from '$lib/trpc';
 
 	$effect(() => {
 		console.log({ $page });
@@ -32,82 +34,45 @@
 		// make sure to reset the currentId when navigating away
 		currentId = null;
 	});
+
+	const queryClient = useQueryClient();
+
+	const utils = trpc().createUtils();
+
+	let button: HTMLButtonElement | null = $state(null);
+
+	async function handleCopy() {
+		const id = $page.params.id;
+
+		if (!id) return;
+
+		const note = await utils.notes.note.ensureData(id);
+		const { title } = note;
+
+		const origin = $page.url.origin;
+		const url = new URL($page.url);
+
+		url.searchParams.delete('stack');
+		url.pathname = `/${id}/${title ? slugify(title) : ''}`;
+
+		navigator.clipboard.writeText(`${origin}${url.pathname}`).then(() => {
+			if (!button) return;
+			button.textContent = 'Copied!';
+			setTimeout(() => {
+				if (!button) return;
+				button.textContent = 'Copy link';
+			}, 1000);
+			console.log('copied to clipboard');
+		});
+	}
 </script>
 
 <div class="top">
 	<a href="/about">Gus's notes</a>
-	<button
-		on:click={(e) => {
-			// get id and title
-			const { id, title } = $page.data.note;
-			console.log({ id, title });
-			const origin = window.location.origin;
-			const url = new URL(window.location.href);
-			url.searchParams.delete('stack');
-			url.pathname = `/${id}/${slugify(title)}`;
-
-			// copy to clipboard
-			navigator.clipboard.writeText(`${origin}${url.pathname}`).then(() => {
-                const b = e.target as HTMLButtonElement;
-				b.textContent = 'Copied!';
-				setTimeout(() => {
-					b.textContent = 'Copy link';
-				}, 1000);
-				console.log('copied to clipboard');
-			});
-		}}
-	>
-		Copy link
-	</button>
+	<button on:click={handleCopy} bind:this={button}> Copy link </button>
 </div>
 <div class="container" style:padding-top="44px">
-	<!-- {#if $page.data.stackedNotes} -->
-	<div class="sidebar">
-		<span class="sidebar-title"> Trail </span>
-		<ul>
-			<!-- {#each $page.data.stackedNotes ?? [] as note (note.id)}
-				<li transition:scale>
-					<a
-						on:focus
-						on:blur
-						on:click={(e) => {
-                            if (e.metaKey) return;
-                            e.preventDefault()
-                            let stack = ($page.url.searchParams.get('stack')?.split(',') ?? []).filter(Boolean)
-                            const id = $page.url.pathname.slice(1).split('/')[0];
-                            console.log({ stack: [...stack], id });
-                            if (stack.includes(id)) {
-                            } else {
-                                stack.push(id)
-                            }
-
-                            const url = new URL((e.target as HTMLAnchorElement).href);
-                            url.searchParams.set('stack', stack.join(','));
-                            console.log(`final stack`, {stack })
-                            goto(url);
-                        }}
-						on:mouseout={(e) => {
-							currentId = null;
-						}}
-						on:mouseover={(e) => {
-							currentId = note.id;
-                            ref(e.target as HTMLElement);
-						}}
-						class:active={$page.url.pathname.split('/').pop() === note.id}
-						href="/{note.id}">{note.title}</a
-					>
-				</li>
-			{/each} -->
-		</ul>
-		{#if currentId && $page.data.stackedNoteContent?.[currentId]}
-			<HoverNote arrow={arrowEl} action={content}>
-				{@html $page.data.stackedNoteContent[currentId]}
-			</HoverNote>
-		{/if}
-
-		<!-- sidebar here -->
-	</div>
-	<!-- {/if} -->
+	<Sidebar />
 	<div class="note">
 		<slot />
 	</div>
@@ -116,46 +81,6 @@
 <style>
 	.container {
 		display: flex;
-	}
-
-	.sidebar {
-		width: 200px;
-		flex-shrink: 0;
-		border-right: 1px solid #f4f4f4;
-		position: fixed;
-		top: 44px;
-		left: 0;
-		height: 100vh;
-		/* background: #f4f4f4; */
-	}
-
-	@media (max-width: 800px) {
-		.sidebar {
-			display: none;
-		}
-	}
-
-	.sidebar ul {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		font-size: 14px;
-	}
-
-	.sidebar-title {
-		display: block;
-		padding: 8px 16px;
-		font-size: 14px;
-		font-weight: 600;
-		color: #666;
-		border-bottom: 1px solid #f4f4f4;
-	}
-
-	.sidebar a {
-		display: block;
-		padding: 8px 16px;
-		text-decoration: none;
-		color: #333;
 	}
 
 	.top {

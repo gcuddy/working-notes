@@ -3,10 +3,8 @@
 	import { page } from '$app/stores';
 	import HoverNote from '$lib/components/hover-note.svelte';
 	import { useFloatingActions } from '$lib/floating-ui';
-	import { trpc, type RouterOutputs } from '$lib/trpc';
-	import { createQueries } from '@tanstack/svelte-query';
-	import { createFloatingActions } from 'svelte-floating-ui';
-	import { flip, offset, shift } from 'svelte-floating-ui/dom';
+	import { type RouterOutputs } from '$lib/trpc';
+	import { navigateStack } from '$lib/utils/stack';
 
 	let { note } = $props<{
 		note: RouterOutputs['notes']['note'];
@@ -89,38 +87,23 @@
 	});
 
 	async function handleClick(e: MouseEvent) {
-		console.log('click click ');
-		console.log({ e });
-		// if ( !(e.target as HTMLElement).closest('.content') ||
-		// 	!(e.target as HTMLElement).closest('.backlinks')
-		// )
-		// 	return;
 		console.log('click');
 		const href = (e.target as HTMLElement).closest('a')?.href;
 		if (href) {
 			if (e.metaKey) return;
-			e.preventDefault();
-
 			const url = new URL(href);
 			if (url.toString().startsWith(window.location.origin)) {
-				let stack = $page.url.searchParams.has('stack')
-					? $page.url.searchParams.get('stack')!.split(',')
-					: [];
-
-				const id = $page.url.pathname.slice(1).replace('trpc-test/', '').split('/')[0];
-				if (stack.includes(id)) {
-					// stack.splice(stack.indexOf(id), 1);
-					// const index = stack.indexOf(id);
-					// stack = stack.slice(0, index);
-				} else {
-					stack.push(id);
-				}
-
-				url.searchParams.set('stack', stack.join(','));
-
+				e.preventDefault();
+				const currentStack = $page.data.stack;
+				const id = url.pathname.slice(1).replace('trpc-test/', '');
+				const newStack = navigateStack(currentStack, id);
+				url.searchParams.set('stack', newStack.join(','));
 				goto(url);
-
-				return;
+				// let stack = $page.url.searchParams.get('stack')?.split(',') ?? [];
+				// const id = $page.url.pathname.slice(1).replace('trpc-test/', '').split('/')[0];
+				// const nextStack = navigateStack(stack, id);
+				// url.searchParams.set('stack', nextStack.join(','));
+				// goto(url);
 			}
 		}
 	}
@@ -130,7 +113,7 @@
 	<HoverNote title={idToTitleMap.get(currentId)} action={floatingContent} noteId={currentId} />
 {/if}
 
-<svelte:document on:click={handleClick} />
+<!-- <svelte:document on:click={handleClick} /> -->
 
 <div
 	class="content"

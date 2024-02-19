@@ -9,10 +9,7 @@ export async function load({ parent, fetch, params, url }) {
 	});
 
 	const stack = url.searchParams.get('stack')?.split(',') ?? [];
-
-	console.log({ stack });
-
-	// TODO: get titles from stacks
+	if (!stack.includes(params.id)) stack.push(params.id);
 
 	return {
 		note: await client.notes.note.createServerQuery(params.id),
