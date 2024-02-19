@@ -6,6 +6,10 @@
 	import { writable } from 'svelte/store';
 	import { scale } from 'svelte/transition';
 
+	$effect(() => {
+		console.log({ $page });
+	});
+
 	let currentId = $state<string | null>(null);
 
 	const arrowEl = writable<HTMLElement | null>(null);

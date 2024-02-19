@@ -56,8 +56,6 @@ export const notesRouter = router({
           outgoingLinksPromise,
         ]);
 
-        console.log({ backlinks, outgoingLinks });
-
         const obj = await bucket.get(note.r2_key as string);
         const noteText = await obj?.text();
 
@@ -87,5 +85,13 @@ export const notesRouter = router({
       // TODO: should we throw if it doesn't exist?
 
       //   TODO: backlinks, rendering
+    }),
+  /**
+   * Just gets the metadata for a note, not its content or links
+   */
+  noteMeta: publicProcedure
+    .input((raw) => parse(string(), raw))
+    .query(async ({ ctx, input }) => {
+
     }),
 });

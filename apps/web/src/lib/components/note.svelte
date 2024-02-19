@@ -134,6 +134,7 @@
 
 <div
 	class="content"
+	on:click={handleClick}
 	on:mouseover={(e) => {
 		if (e.target instanceof HTMLAnchorElement) {
 			console.log(e.target.href);
@@ -154,7 +155,7 @@
 	{@html note.html}
 </div>
 
-<div class="backlinks">
+<div class="backlinks" on:click={handleClick}>
 	<h2>Backlinks</h2>
 	<ul>
 		{#each note.backlinks as backlink}
