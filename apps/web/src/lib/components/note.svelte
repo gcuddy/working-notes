@@ -95,15 +95,10 @@
 			if (url.toString().startsWith(window.location.origin)) {
 				e.preventDefault();
 				const currentStack = $page.data.stack;
-				const id = url.pathname.slice(1).replace('trpc-test/', '');
+				const id = url.pathname.slice(1);
 				const newStack = navigateStack(currentStack, id);
 				url.searchParams.set('stack', newStack.join(','));
 				goto(url);
-				// let stack = $page.url.searchParams.get('stack')?.split(',') ?? [];
-				// const id = $page.url.pathname.slice(1).replace('trpc-test/', '').split('/')[0];
-				// const nextStack = navigateStack(stack, id);
-				// url.searchParams.set('stack', nextStack.join(','));
-				// goto(url);
 			}
 		}
 	}
@@ -124,7 +119,7 @@
 			const url = new URL(e.target.href);
 			if (url.toString().startsWith(window.location.origin)) {
 				console.log('local link');
-				currentId = url.pathname.slice(1).replace('trpc-test/', '');
+				currentId = url.pathname.slice(1);
 				floatingRef(e.target);
 				return;
 			}
@@ -144,7 +139,7 @@
 		{#each note.backlinks as backlink}
 			<li>
 				<a
-					href="/trpc-test/{backlink.noteId}"
+					href="/{backlink.noteId}"
 					on:mouseover={(e) => {
 						if (e.currentTarget instanceof HTMLAnchorElement) {
 							currentId = backlink.noteId;

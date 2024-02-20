@@ -26,7 +26,7 @@ export const useProcessor = (permalinks: { slug: string; id: string }[]) =>
       pageResolver: (name: string) => {
         const p = permalinks.find((p) => p.slug === name);
         if (p) {
-          return [`trpc-test/${p.id}`];
+          return [`${p.id}`];
         }
         return [`${name}`];
       },

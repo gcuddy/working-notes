@@ -1,12 +1,11 @@
 <script lang="ts">
-	export let data;
+	let { data } = $props();
+
+	let listQuery = data.notes();
 </script>
 
 <ul>
-	{#each data.notes as note}
-		<li>
-			<a href="/{note.id}">{note.title}</a>
-		</li>
+	{#each $listQuery.data ?? [] as note}
+		<li><a href="/{note.id}">{note.title}</a></li>
 	{/each}
 </ul>
-<!-- {JSON.stringify(data)} -->

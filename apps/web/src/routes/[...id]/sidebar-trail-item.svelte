@@ -27,14 +27,14 @@
 	{#if query.error($queryData)}
 		<p>{$queryData.failureReason.message}</p>
 	{:else if query.loading($queryData)}
-		<a href="/trpc-test/{id}">...</a>
+		<a href="/{id}">...</a>
 	{:else if query.empty($queryData)}
 		<!--  -->
 	{:else if query.success($queryData)}
 		<!-- svelte-ignore a11y-mouse-events-have-key-events-->
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<a
-			href="/trpc-test/{id}"
+			href="/{id}"
 			use:ref
 			class:active={$page.params.id.split('/')[0] === id}
 			on:click={(e) => {
