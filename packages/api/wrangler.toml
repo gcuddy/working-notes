@@ -14,4 +14,4 @@ bucket_name = "working-notes"
 
 
 [vars]
-APP_URL = "https://1192a0fb.gus-notes.pages.dev"
+APP_URL = "https://monorepo.gus-notes.pages.dev"
