@@ -15,6 +15,7 @@ declare global {
 			// noteMap?: Record<string, { id: string; title: string; html: string }>;
 			// map id -> html
 			stackedNoteContent?: Record<string, string>;
+			stack: string[];
 		}
 		interface PageState {
 			// eventually this...
