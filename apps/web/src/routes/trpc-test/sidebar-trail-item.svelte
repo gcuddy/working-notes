@@ -36,7 +36,7 @@
 		<a
 			href="/trpc-test/{id}"
 			use:ref
-			class:active={$page.params.id === id}
+			class:active={$page.params.id.split('/')[0] === id}
 			on:click={(e) => {
 				if (e.metaKey) return;
 				e.preventDefault();

@@ -42,7 +42,7 @@
 	let button: HTMLButtonElement | null = $state(null);
 
 	async function handleCopy() {
-		const id = $page.params.id;
+		const [id] = $page.params.id.split('/');
 
 		if (!id) return;
 
